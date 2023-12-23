@@ -10,15 +10,19 @@ import lombok.Setter;
 @Getter
 @Setter
 public abstract class Node {
-    private final UUID id;
-    private final long createdTime;
-    private String name;
+    protected final UUID id;
+    protected final long createdTime;
+    protected String name;
+    protected int x;
+    protected int y;
 
-    protected Node(String name) {
-        this.id = UUID.randomUUID();
+    protected Node(UUID id, String name, int x, int y) {
         this.createdTime = System.currentTimeMillis();
 
+        this.id = id;
         this.name = name;
+        this.x = x;
+        this.y = y;
     }
 
     public JSONObject toJson() {
@@ -26,6 +30,8 @@ public abstract class Node {
 
         obj.put("name", getName());
         obj.put("id", getId());
+        obj.put("x", x);
+        obj.put("y", y);
 
         return obj;
     }
