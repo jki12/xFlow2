@@ -9,6 +9,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.nhnacademy.Input;
 import com.nhnacademy.Output;
 import com.nhnacademy.Wire;
 import com.nhnacademy.message.JsonMessage;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
     
 @Slf4j
 @Getter
+@Setter
 public class MqttInNode extends ActiveNode implements Output {
     private static final String DEFAULT_URI = "tcp://ems.nhnacademy.com:1883";
     private static final String DEFAULT_TOPIC = "#";
@@ -30,34 +32,34 @@ public class MqttInNode extends ActiveNode implements Output {
     @Setter
     private String fromTopic;
 
-    public MqttInNode(String name) {
-        this(DEFAULT_URI, name);
-    }
-    
-    public MqttInNode(String uri, String name) {
-        this(uri, DEFAULT_TOPIC, name);
-    }
-
-    public MqttInNode(String uri, String topic, String name) {
-        super(name);
+    public MqttInNode(UUID id, String name, int x, int y, String uri, String topic) {
+        super(id, name, x, y);
 
         this.uri = uri;
-        fromTopic = topic;
+        this.fromTopic = topic;
+    }
+
+    public MqttInNode(String name, int x, int y, String uri, String topic) {
+        this(UUID.randomUUID(), name, x, y, uri, topic);
+    }
+
+    public MqttInNode(String name, int x, int y) {
+        this(name, x, y, DEFAULT_URI, DEFAULT_TOPIC);
     }
 
     @Override
     public JSONObject toJson() {
         JSONObject obj = super.toJson();
+
         obj.put("topic", fromTopic);
 
-        String[] out = new String[outWires.size()];
+        UUID[] uuids = new UUID[outWires.size()];
         int index = 0;
-
         for (Wire wire : outWires) {
-            out[index++] = wire.getId().toString();
+            uuids[index++] = wire.getTo();
         }
 
-        obj.put("outWires", out);
+        obj.put("wires", uuids);
 
         return obj;
     }
@@ -80,16 +82,18 @@ public class MqttInNode extends ActiveNode implements Output {
                 try {
                     object.put("topic", topic);
                     object.put("payload", new JSONObject(payload.toString()));
+
                 } catch(JSONException ignore) {
                     log.warn("topic : {} json형식의 데이터가 아닙니다.", topic);
                 }
 
                 Message msg = new JsonMessage(object);
+
                 for (Wire wire : outWires) {
                     wire.getMessageQue().add(msg);
                 }
             });
-            
+
         } catch (Exception e) {
             log.error(e.getMessage());
         }
