@@ -12,10 +12,17 @@ import lombok.Getter;
 @Getter
 public class Wire {
     private final UUID id;
+    private final UUID from;
+    private final UUID to;
     private final BlockingQueue<Message> messageQue = new LinkedBlockingQueue<>();
 
-    public Wire() {
+    public Wire(UUID from, UUID to) {
+        if (from == to) throw new IllegalArgumentException();
+
         id = UUID.randomUUID();
+
+        this.from = from;
+        this.to = to;
     }
     
     @Override
